@@ -73,14 +73,13 @@ var fowl = (function() { "use strict";
 	 * @return {?Object} The component from the entity.
 	 */
 	EntityManager.prototype.getComponent = function(entity, component) {
-		return this.components[componentCount * entity + component.componentId];
+		return this.entityMask[entity] & 1 << component.componentId ? this.components[componentCount * entity + component.componentId] : null;
 	};
 	/**
 	 * Remove all entities.
 	 */
 	EntityManager.prototype.clear = function() {
 		this.entityMask.fill(0);
-		this.components = [];
 	};
 	/**
 	 * Applies the callback to each entity with the specified components.
