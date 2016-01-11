@@ -67,13 +67,22 @@ var fowl = (function() { "use strict";
 		this.entityMask[entity] &= ~(1 << component.componentId);
 	};
 	/**
+	 * Returns whether or not an entity has a specific component.
+	 * @param {number} entity - The entity.
+	 * @param {!Object} component - The component.
+	 * @return {boolean} Whether the entity has the component.
+	 */
+	EntityManager.prototype.hasComponent = function(entity, component) {
+		return this.entityMask[entity] & 1 << component.componentId;
+	};
+	/**
 	 * Retrieve a component from an entity.
 	 * @param {number} entity - The entity.
 	 * @param {!Object} component - The component.
 	 * @return {?Object} The component from the entity.
 	 */
 	EntityManager.prototype.getComponent = function(entity, component) {
-		return this.entityMask[entity] & 1 << component.componentId ? this.components[componentCount * entity + component.componentId] : null;
+		return this.components[componentCount * entity + component.componentId];
 	};
 	/**
 	 * Remove all entities.
@@ -92,9 +101,7 @@ var fowl = (function() { "use strict";
 			mask |= 1 << arguments[i].componentId;
 		}
 		for (var i = 0, length = this.count; i < length; ++i) {
-			if ((this.entityMask[i] & mask) === mask) {
-				callback(i); // Call callback with the entity
-			}
+			if ((this.entityMask[i] & mask) === mask) callback(i); // Call callback with the entity
 		}
 	};
 	return {
