@@ -1,0 +1,26 @@
+{
+  "name": "fowl",
+  "version": "2.0.0",
+  "description": "JavaScript entity component system",
+  "main": "fowl.js",
+  "dependencies": {
+    "bitset": "axelf4/bitset"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/axelf4/fowl.git"
+  },
+  "keywords": [
+    "entity",
+    "component",
+    "system",
+    "ecs"
+  ],
+  "author": "Axel Forsman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/axelf4/fowl/issues"
+  },
+  "homepage": "https://github.com/axelf4/fowl#readme"
+}

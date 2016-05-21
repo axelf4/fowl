@@ -97,13 +97,6 @@ var fowl = (function() { "use strict";
 			if (mask.contains(this.entityMask[i])) callback(i); // Call callback with the entity
 		}
 	};
-	EntityManager.prototype.getMask = function(components) {
-		var mask = new BitSet();
-		for (var i = 0, length = components.length; i < length; i++) {
-			mask.set(components[i].componentId);
-		}
-		return mask;
-	};
 	EntityManager.prototype.matches = function(entity, mask) {
 		return mask.contains(this.entityMask[entity]);
 	};
@@ -120,32 +113,13 @@ var fowl = (function() { "use strict";
 				component.componentId = i;
 				component.components = [];
 			}
+		},
+		getMask: function(components) {
+			var mask = new BitSet();
+			for (var i = 0, length = components.length; i < length; i++) {
+				mask.set(components[i].componentId);
+			}
+			return mask;
 		}
 	};
 }());
-
-var Value = function(i) {this.i = i;};
-fowl.registerComponents(Value);
-var em = new fowl.EntityManager();
-
-var entity = em.createEntity();
-em.addComponent(entity, new Value(10));
-console.log(em.getComponent(entity, Value).i);
-
-var mask = em.getMask([Value]);
-console.log(em.matches(entity, mask));
-
-console.log("Running tests");
-var suite = new Benchmark.Suite;
-suite.add('test', function() {
-	em.getComponent(entity, Value);
-})
-// add listeners
-.on('cycle', function(event) {
-  console.log(String(event.target));
-})
-.on('complete', function() {
-  console.log('Fastest is ' + this.filter('fastest').map('name'));
-})
-// run async
-.run({ 'async': true });
