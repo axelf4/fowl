@@ -1,25 +1,27 @@
 var fowl = (function() { "use strict";
+	var componentCount;
 	/**
 	 * An entity manager.
 	 * @constructor
 	 */
 	var EntityManager = function() {
-		var size = 1024;
-		/**
-		 * Array of bitflags for each entity's component.
-		 * @type {BitSet[]}
-		 */
-		this.entityMask = new Array(size);
-		/**
-		 * Pool of availible entity identifiers.
-		 * @type {number[]}
-		 */
-		this.pool = [];
 		/**
 		 * The highest identifier that has been given to an entity.
 		 * @type {number}
 		 */
 		this.count = 0;
+		/**
+		 * Pool of availible entity identifiers.
+		 * @type {number[]}
+		 */
+		this.pool = [];
+		this.maskSize = Math.ceil(componentCount / 8);
+		this.entityMask = new ArrayBuffer(0x10000);
+		this.bitset = BitsetModule(window, null, this.entityMask);
+		/**
+		 * The number of allocated entity system masks.
+		 */
+		this.maskCount = 0;
 	};
 	/**
 	 * Create a new entity.
@@ -27,7 +29,6 @@ var fowl = (function() { "use strict";
 	 */
 	EntityManager.prototype.createEntity = function() {
 		var entity = this.pool.length > 0 ? this.pool.pop() : this.count++;
-		this.entityMask[entity] = new BitSet();
 		return entity;
 	};
 	/**
@@ -35,7 +36,7 @@ var fowl = (function() { "use strict";
 	 * @param {number} entity - The identifier of the entity to remove.
 	 */
 	EntityManager.prototype.removeEntity = function(entity) {
-		this.entityMask[entity].clear();
+		this.bitset.clear(entity * this.maskSize, this.maskSize);
 		this.pool.push(entity);
 	};
 	/**
@@ -46,8 +47,8 @@ var fowl = (function() { "use strict";
 	 */
 	EntityManager.prototype.addComponent = function(entity, component) {
 		var componentType = component.constructor;
-		this.entityMask[entity].set(componentType.componentId);
-		return componentType.components[entity] = component;
+		this.bitset.set(entity * this.maskSize, componentType.componentId);
+		return componentType.components[entity] = component; // TODO this should be void
 	};
 	/**
 	 * Remove a component from an entity.
@@ -55,7 +56,7 @@ var fowl = (function() { "use strict";
 	 * @param {!Object} - The component.
 	 */
 	EntityManager.prototype.removeComponent = function(entity, component) {
-		this.entityMask[entity].set(component.componentId, false);
+		this.bitset.reset(entity * this.maskSize, componentType.componentId);
 	};
 	/**
 	 * Returns whether or not an entity has a specific component.
@@ -64,7 +65,7 @@ var fowl = (function() { "use strict";
 	 * @return {boolean} Whether the entity has the component.
 	 */
 	EntityManager.prototype.hasComponent = function(entity, component) {
-		return this.entityMask[entity].get(component.componentId);
+		return this.bitset.isset(entity * this.maskSize, component.componentId);
 	};
 	/**
 	 * Retrieve a component from an entity.
@@ -80,7 +81,7 @@ var fowl = (function() { "use strict";
 	 */
 	EntityManager.prototype.clear = function() {
 		for (var i = 0, length = this.count; i < length; i++) {
-			this.entityMask[i].clear();
+			this.bitset.clear(i * this.maskSize);
 		}
 	};
 	/**
@@ -89,16 +90,28 @@ var fowl = (function() { "use strict";
 	 * @param {...Object} Components that the entities mush have.
 	 */
 	EntityManager.prototype.each = function(callback) {
-		var mask = new BitSet();
+		throw new Error("not implemented yet.");
+		var mask = bitset.create();
 		for (var i = 1; i < arguments.length; ++i) {
-			mask.set(arguments[i].componentId, true);
+			bitset.set(mask, arguments[i].componentId);
 		}
 		for (var i = 0, length = this.count; i < length; ++i) {
-			if (mask.contains(this.entityMask[i])) callback(i); // Call callback with the entity
+			if (bitset.contains(mask, this.entityMask[i])) callback(i); // Call callback with the entity
 		}
 	};
 	EntityManager.prototype.matches = function(entity, mask) {
-		return mask.contains(this.entityMask[entity]);
+		return this.bitset.contains(entity * this.maskSize, mask, this.maskSize);
+	};
+	EntityManager.prototype.getMask = function(components) {
+		/*var mask = bitset.create();
+		for (var i = 0, length = components.length; i < length; i++) {
+			bitset.set(mask, components[i].componentId);
+		}*/
+		var mask = this.entityMask.byteLength - (++this.maskCount * this.maskSize);
+		for (var i = 0, length = components.length; i < length; i++) {
+			this.bitset.set(mask, components[i].componentId);
+		}
+		return mask;
 	};
 	return {
 		EntityManager: EntityManager,
@@ -108,18 +121,12 @@ var fowl = (function() { "use strict";
 		 * @param {...Object} var_args - The components.
 		 */
 		registerComponents: function() {
+			componentCount = arguments.length;
 			for (var i = 0, length = arguments.length; i < length; ++i) {
 				var component = arguments[i];
 				component.componentId = i;
 				component.components = [];
 			}
-		},
-		getMask: function(components) {
-			var mask = new BitSet();
-			for (var i = 0, length = components.length; i < length; i++) {
-				mask.set(components[i].componentId);
-			}
-			return mask;
 		}
 	};
 }());
