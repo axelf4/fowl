@@ -24,15 +24,21 @@ To add a component to an entity call `EntityManager.addComponent(entity, compone
 em.addComponent(entity, new Position(10, 0));
 ```
 #### Querying entities and their components
-To iterate over the entities with, e.g., the `Position` component, use `EntityManager.each(callback, ...)`. To iterate over all entities you simply don't pass any additional arguments. `callback` is a function callback that is called for each entity.
+To iterate over the entities with e.g. the `Position` component you must first create a mask for the component types with `EntityManager.getMask(componentTypes)`. Attn. You should allocate your masks at initialization only since they are costly to create.
 ```javascript
-em.each(function(entity) {
-	console.log(entity);
-}, Position);
+var movementSystemMask = em.getMask([Position]);
+```
+Then, iterate over all entities and check whether they match the mask:
+```javascript
+for (var entity = 0, length = em.count; entity < length; ++entity) {
+	if (em.matches(entity, movementSystemMask)) {
+		// Do stuff with `entity`
+	}
+}
 ```
 To retrieve a component associated with an entity use `EntityManager.getComponent(entity, component)`.
 ```javascript
 var position = em.getComponent(entity, Position);
 ```
 #### Removing all entities
-`EntityManager.clear()` simply removes all components from all entities in play, with the effect of removing all entities.
+`EntityManager.clear()` removes all entities in play.
