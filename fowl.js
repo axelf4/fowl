@@ -4,7 +4,8 @@ var fowl = (function() { "use strict";
 	 * An entity manager.
 	 * @constructor
 	 */
-	var EntityManager = function() {
+	var EntityManager = function(size) {
+		size = size === undefined ? 0x10000 : size;
 		/**
 		 * The highest identifier that has been given to an entity.
 		 * @type {number}
@@ -15,8 +16,8 @@ var fowl = (function() { "use strict";
 		 * @type {number[]}
 		 */
 		this.pool = [];
-		this.maskSize = Math.ceil(componentCount / 8);
-		this.entityMask = new ArrayBuffer(0x10000);
+		this.maskSize = Math.ceil(componentCount / 32);
+		this.entityMask = new ArrayBuffer(size);
 		this.bitset = BitsetModule(window, null, this.entityMask);
 		/**
 		 * The number of allocated entity system masks.
@@ -88,30 +89,11 @@ var fowl = (function() { "use strict";
 			this.bitset.clear(i * this.maskSize);
 		}
 	};
-	/**
-	 * Applies the callback to each entity with the specified components.
-	 * @param {function(number)} callback - The callback.
-	 * @param {...Object} Components that the entities mush have.
-	 */
-	EntityManager.prototype.each = function(callback) {
-		throw new Error("not implemented yet.");
-		var mask = bitset.create();
-		for (var i = 1; i < arguments.length; ++i) {
-			bitset.set(mask, arguments[i].componentId);
-		}
-		for (var i = 0, length = this.count; i < length; ++i) {
-			if (bitset.contains(mask, this.entityMask[i])) callback(i); // Call callback with the entity
-		}
-	};
 	EntityManager.prototype.matches = function(entity, mask) {
 		return this.bitset.contains(entity * this.maskSize, mask, this.maskSize);
 	};
 	EntityManager.prototype.getMask = function(components) {
-		/*var mask = bitset.create();
-		for (var i = 0, length = components.length; i < length; i++) {
-			bitset.set(mask, components[i].componentId);
-		}*/
-		var mask = this.entityMask.byteLength - (++this.maskCount * this.maskSize);
+		var mask = (this.entityMask.byteLength >> 2) - (++this.maskCount * this.maskSize);
 		for (var i = 0, length = components.length; i < length; i++) {
 			this.bitset.set(mask, components[i].componentId);
 		}
@@ -127,8 +109,7 @@ var fowl = (function() { "use strict";
 		registerComponents: function() {
 			componentCount = arguments.length;
 			for (var i = 0, length = arguments.length; i < length; ++i) {
-				var component = arguments[i];
-				component.componentId = i;
+				arguments[i].componentId = i;
 			}
 		}
 	};
