@@ -22,6 +22,10 @@ var fowl = (function() { "use strict";
 		 * The number of allocated entity system masks.
 		 */
 		this.maskCount = 0;
+		this.components = new Array(componentCount);
+		for (var i = 0, length = componentCount; i < length; ++i) {
+			this.components[i] = [];
+		}
 	};
 	/**
 	 * Create a new entity.
@@ -48,7 +52,7 @@ var fowl = (function() { "use strict";
 	EntityManager.prototype.addComponent = function(entity, component) {
 		var componentType = component.constructor;
 		this.bitset.set(entity * this.maskSize, componentType.componentId);
-		return componentType.components[entity] = component; // TODO this should be void
+		return this.components[componentType.componentId][entity] = component;
 	};
 	/**
 	 * Remove a component from an entity.
@@ -74,7 +78,7 @@ var fowl = (function() { "use strict";
 	 * @return {?Object} The component from the entity.
 	 */
 	EntityManager.prototype.getComponent = function(entity, component) {
-		return component.components[entity];
+		return this.components[component.componentId][entity];
 	};
 	/**
 	 * Remove all entities.
@@ -125,7 +129,6 @@ var fowl = (function() { "use strict";
 			for (var i = 0, length = arguments.length; i < length; ++i) {
 				var component = arguments[i];
 				component.componentId = i;
-				component.components = [];
 			}
 		}
 	};
