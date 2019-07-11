@@ -18,7 +18,7 @@ var fowl = (function() { "use strict";
 		this.pool = [];
 		this.maskSize = Math.ceil(componentCount / 32);
 		this.entityMask = new ArrayBuffer(size);
-		this.bitset = BitsetModule(window, null, this.entityMask);
+		this.bitset = BitSetModule(window, null, this.entityMask);
 		/**
 		 * The number of allocated entity system masks.
 		 */

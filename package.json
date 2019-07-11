@@ -4,7 +4,7 @@
   "description": "JavaScript entity component system",
   "main": "fowl.js",
   "dependencies": {
-    "bitset": "axelf4/bitset"
+    "BitSetModule": "axelf4/BitSetModule"
   },
   "devDependencies": {},
   "repository": {
